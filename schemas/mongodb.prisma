@@ -1,0 +1,31 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DB_URL_MONGO")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Link {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  owner      String
+  short_link String   @unique
+  link       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  end_at     DateTime
+
+  @@map("links") // Название таблицы
+}
+
+model User {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  username   String   @unique
+  login      String   @unique
+  password   String
+  token      String
+  created_at DateTime @default(now())
+
+  @@map("users") // Название таблицы
+}

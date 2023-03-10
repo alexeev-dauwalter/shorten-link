@@ -1,0 +1,31 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL_POSTGRES")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Link {
+  id         Int      @id @default(autoincrement())
+  owner      Int
+  short_link String   @unique
+  link       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  end_at     DateTime
+
+  @@map("shorten_link") // Название таблицы
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  login      String   @unique
+  password   String
+  token      String
+  created_at DateTime @default(now())
+
+  @@map("users") // Название таблицы
+}

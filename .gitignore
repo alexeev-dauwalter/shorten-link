@@ -1,0 +1,9 @@
+/node_modules
+
+/.git
+/.vscode
+
+.gitpod.yml
+.env
+package-lock.json
+yarn.lock

@@ -1,0 +1,34 @@
+{
+  "name": "shorten-link",
+  "version": "0.0.0",
+  "main": "./src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "prisma:mongodb": "npx prisma generate --schema=./schemas/mongodb.prisma",
+    "prisma:postgres": "npx prisma generate --schema=./schemas/postgres.prisma"
+  },
+  "author": "Ishi Inanis <ishi.inanis@gmail.com>",
+  "contributors": [
+    {
+      "name": "ZxXxR",
+      "email": "mrfreyzi1@yandex.ru"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ishi-Inanis/shorten-link.git"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^8.3.0",
+    "@fastify/helmet": "^10.1.0",
+    "@prisma/client": "^4.11.0",
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.14.0",
+    "jsonwebtoken": "^9.0.0",
+    "prisma": "^4.11.0",
+    "qrcode": "^1.5.1"
+  }
+}
