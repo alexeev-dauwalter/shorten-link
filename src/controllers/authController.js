@@ -4,19 +4,19 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient();
 
-export class authController {
+export class AuthController {
     static async login(req, res) {
         try {
             const { login, password } = req.body,
-                data = await prisma.user.findMany({ where: { login } });
+                data = await prisma.user.findFirst({ where: { login } });
 
-            if (!data.length || !bcrypt.compareSync(password, data[0].password)) {
+            if (!data || !bcrypt.compareSync(password, data.password)) {
                 return res.send({ success: false, error_code: 'user_not_found', error_message: 'Неверный логин или пароль' });
             }
 
             const token = jwt.sign(
                 {
-                    login: data[0].login,
+                    login: data.login,
                     iss: process.env.SERVER_HOSTNAME,
                     iat: Date.now()
                 },

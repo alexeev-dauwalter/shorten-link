@@ -1,7 +1,7 @@
-import { authController } from '../controllers/authController.js'
+import { AuthController } from '../controllers/authController.js';
 
 export default (fastify, opts, done) => {
-    fastify.post('/auth/login', authController.login);
-    fastify.get('/auth/logout', authController.logout);
+    fastify.post('/auth/login', AuthController.login);
+    fastify.get('/auth/logout', AuthController.logout);
     done();
 }

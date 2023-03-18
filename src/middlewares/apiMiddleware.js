@@ -1,22 +1,22 @@
-import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
+import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export default async (req, res) => {
     if (req.method === 'OPTIONS') return res.send();
 
-    const notAuthorized = {
+    const Unauthorized = {
         success: false,
-        error_code: 'not_authorized',
+        error_code: 'unauthorized',
         error_message: 'Пользователь не авторизирован'
     };
 
     try {
-        let token = req.cookies?.session || req.headers?.authorization ? ((req.headers?.authorization).split(' '))[1] : null;
-        let user = false;
+        let token = req.cookies?.session || req.headers?.authorization ? ((req.headers?.authorization).split(' '))[1] : null,
+            user = false;
 
-        if (!token) return res.status(403).send(notAuthorized);
+        if (!token) return res.status(401).send(Unauthorized);
 
         const tokenType = token[1].split('.');
 
@@ -25,24 +25,27 @@ export default async (req, res) => {
                 const decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
                 if (!decodedData) {
-                    return res.status(403).send(notAuthorized);
+                    return res.status(401).send(Unauthorized);
                 }
 
-                [user] = await prisma.user.findMany({ where: { login: decodedData.login } });
+                user = await prisma.user.findFirst({ where: { login: decodedData.login } });
                 break;
             case 1: // API-Token
-                [user] = await prisma.user.findMany({ where: { token } });
+                user = await prisma.user.findFirst({ where: { token } });
                 break;
 
             default:
-                return res.status(403).send(notAuthorized);
+                return res.status(401).send(Unauthorized);
         }
 
-        if (!user) return res.status(403).send(notAuthorized);
+        if (!user) return res.status(401).send(Unauthorized);
+
+        user.roles = user.roleId;
+        delete user.roleId;
 
         req.user = user;
     } catch (error) {
-        console.log(error.toString());
-        return res.status(403).send(notAuthorized);
+        console.error(error.toString());
+        return res.status(401).send(Unauthorized);
     }
 }

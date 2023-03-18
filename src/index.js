@@ -1,10 +1,10 @@
 // Импорты
-import { readFileSync } from 'fs'
-import dotenv from 'dotenv'
-import Fastify from 'fastify'
-import cookie from '@fastify/cookie'
-import helmet from '@fastify/helmet'
-import Router from './routers/index.js'
+import { readFileSync } from 'fs';
+import dotenv from 'dotenv';
+import Fastify from 'fastify';
+import cookie from '@fastify/cookie';
+import helmet from '@fastify/helmet';
+import Router from './routers/index.js';
 
 // Подгрузка .env файла в process.env
 dotenv.config();

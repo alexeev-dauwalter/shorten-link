@@ -1,13 +1,16 @@
-import { PrismaClient } from '@prisma/client'
-import qrcode from 'qrcode'
+import { PrismaClient } from '@prisma/client';
+import qrcode from 'qrcode';
 
 const prisma = new PrismaClient();
 
-export class linkController {
+export class LinkController {
     static async getAll(req, res) {
         try {
             const links = await prisma.link.findMany({ where: { owner: req.user.id } });
-            return res.send(links.map(x => x = linkController.reformatDates(x)));
+            return res.send(links.map(x => {
+                delete x.owner;
+                return LinkController.reformatDates(x);
+            }));
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -20,12 +23,12 @@ export class linkController {
 
             if (!link || !duration) return res.code(400).send();
 
-            let short_link = linkController.generateShort(),
+            let short_link = LinkController.generateShort(),
                 query;
 
-            while (query = await prisma.link.findMany({ where: { short_link } })) {
-                if (!query.length) break;
-                short_link = linkController.generateShort(short_link);
+            while (query = await prisma.link.findFirst({ where: { short_link } })) {
+                if (!query) break;
+                short_link = LinkController.generateShort(short_link);
             }
 
             query = await prisma.link.create({
@@ -49,11 +52,11 @@ export class linkController {
     static async redirect(req, res) {
         try {
             const { hash } = req.params,
-                data = await prisma.link.findMany({ where: { short_link: hash } });
+                data = await prisma.link.findFirst({ where: { short_link: hash } });
 
-            if (!data.length) return res.code(404).send();
+            if (!data) return res.code(404).send();
 
-            return res.redirect(302, data[0].link);
+            return res.redirect(308, data.link);
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -63,12 +66,14 @@ export class linkController {
     static async information(req, res) {
         try {
             const { hash } = req.params;
-            let data = await prisma.link.findMany({ where: { owner: req.user.id, short_link: hash } });
+            let data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
 
-            if (!data.length) return res.code(404).send();
+            if (!data) return res.code(404).send();
+
+            delete data.owner;
 
             return res.send(Object.assign(
-                linkController.reformatDates(data[0]),
+                LinkController.reformatDates(data),
                 { qrcode: `https://${process.env.SERVER_HOSTNAME}/${hash}/qr` },
             ));
         } catch (error) {
@@ -82,29 +87,26 @@ export class linkController {
             const { hash } = req.params,
                 { link, duration } = req.body;
 
-            let data = await prisma.link.findMany({ where: { owner: req.user.id, short_link: hash } });
+            let data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
 
-            // Если ссылки не существует - отправляем 404
-            if (!data.length) return res.code(404).send();
+            if (!data) return res.code(404).send();
 
-            // Если ничего не изменилось - возвращаем 304 (Not Modified) и данные ссылки
-            if (!link && !duration) return res.code(304).send(linkController.reformatDates(data[0]));
+            if (!link && !duration) return res.code(400).send();
 
-            // Преобразуем входящие данные
             const query = await prisma.link.update({
-                where: { owner: req.user.id, short_link: hash },
+                where: { short_link: hash },
                 data: {
-                    link: link || data[0].link,
-                    update_at: new Date(),
-                    end_at: duration ? new Date(duration * 1000) : new Date(data[0].end_at)
+                    link: link || data.link,
+                    updated_at: new Date(),
+                    end_at: duration ? new Date(duration * 1000) : new Date(data.end_at)
                 }
             });
 
-            if (!query) return res.code(400).send();
+            if (!query) return res.code(500).send();
 
-            data = await prisma.link.findMany({ where: { owner: req.user.id, short_link: hash } });
+            data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
 
-            return res.send(linkController.reformatDates(data[0]));
+            return res.send(LinkController.reformatDates(data));
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -114,17 +116,17 @@ export class linkController {
     static async delete(req, res) {
         try {
             const { hash } = req.params;
-            let data = await prisma.link.findMany({ where: { owner: req.user.id, short_link: hash } });
+            let data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
 
-            if (!data.length) return res.code(404).send();
+            if (!data) return res.code(404).send();
 
             const query = await prisma.link.delete({ where: { short_link: hash } });
 
             if (!query) return res.code(500).send();
 
-            data[0] = linkController.reformatDates(data[0]);
+            data = LinkController.reformatDates(data);
 
-            return res.send(data[0]);
+            return res.send(data);
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -160,11 +162,11 @@ export class linkController {
         return result;
     }
 
-    static reformatDates(link) {
-        if (link.create_at) link.create_at = new Date(link.create_at).getTime();
-        if (link.update_at) link.update_at = new Date(link.update_at).getTime();
-        if (link.end_at) link.end_at = new Date(link.end_at).getTime();
+    static reformatDates(data) {
+        if (data.created_at) data.created_at = new Date(data.created_at).getTime();
+        if (data.updated_at) data.updated_at = new Date(data.updated_at).getTime();
+        if (data.end_at) data.end_at = new Date(data.end_at).getTime();
 
-        return link;
+        return data;
     }
 }

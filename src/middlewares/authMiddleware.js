@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
 export default (req, res, done) => {
     if (req.method === 'OPTIONS') return done();
@@ -10,7 +10,7 @@ export default (req, res, done) => {
 
         req.user = jwt.verify(session, process.env.JWT_SECRET_KEY);
     } catch (error) {
-        console.log(error.toString());
+        console.error(error.toString());
         return false;
     }
 }

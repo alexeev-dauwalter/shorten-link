@@ -1,19 +1,25 @@
-import { linkController } from '../controllers/linkController.js'
-import apiMiddleware from '../middlewares/apiMiddleware.js'
+import { LinkController } from '../controllers/linkController.js';
+import apiMiddleware from '../middlewares/apiMiddleware.js';
 
 export default (fastify, opts, done) => {
     fastify.addHook('preHandler', async (request, reply) => {
-        if (!(['/:hash', '/:hash/qr'].includes(request.routeConfig.url))) {
+        const { url, method } = request.routeConfig,
+            allowedRouters = [
+                { url: '/:hash', method: 'GET' },
+                { url: '/:hash/qr', method: 'GET' }
+            ];
+
+        if (!(allowedRouters.filter(route => url == route.url && method == route.method)).length) {
             await apiMiddleware(request, reply);
         }
     })
 
-    fastify.get('/links', linkController.getAll);
-    fastify.post('/link', linkController.create);
-    fastify.get('/:hash', linkController.redirect);
-    fastify.get('/@:hash', linkController.information);
-    fastify.put('/:hash', linkController.update);
-    fastify.delete('/:hash', linkController.delete);
-    fastify.get('/:hash/qr', linkController.generateQR);
+    fastify.get('/links', LinkController.getAll);
+    fastify.post('/link', LinkController.create);
+    fastify.get('/:hash', LinkController.redirect);
+    fastify.get('/@:hash', LinkController.information);
+    fastify.put('/:hash', LinkController.update);
+    fastify.delete('/:hash', LinkController.delete);
+    fastify.get('/:hash/qr', LinkController.generateQR);
     done();
 }
