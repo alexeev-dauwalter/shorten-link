@@ -6,17 +6,11 @@ const prisma = new PrismaClient();
 export default async (req, res) => {
     if (req.method === 'OPTIONS') return res.send();
 
-    const Unauthorized = {
-        success: false,
-        error_code: 'unauthorized',
-        error_message: 'Пользователь не авторизирован'
-    };
-
     try {
         let token = req.cookies?.session || req.headers?.authorization ? ((req.headers?.authorization).split(' '))[1] : null,
             user = false;
 
-        if (!token) return res.status(401).send(Unauthorized);
+        if (!token) return res.status(401).send();
 
         const tokenType = token[1].split('.');
 
@@ -25,7 +19,7 @@ export default async (req, res) => {
                 const decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
                 if (!decodedData) {
-                    return res.status(401).send(Unauthorized);
+                    return res.status(401).send();
                 }
 
                 user = await prisma.user.findFirst({ where: { login: decodedData.login } });
@@ -35,10 +29,10 @@ export default async (req, res) => {
                 break;
 
             default:
-                return res.status(401).send(Unauthorized);
+                return res.status(401).send();
         }
 
-        if (!user) return res.status(401).send(Unauthorized);
+        if (!user) return res.status(401).send();
 
         user.roles = user.roleId;
         delete user.roleId;
@@ -46,6 +40,6 @@ export default async (req, res) => {
         req.user = user;
     } catch (error) {
         console.error(error.toString());
-        return res.status(401).send(Unauthorized);
+        return res.status(500).send();
     }
 }

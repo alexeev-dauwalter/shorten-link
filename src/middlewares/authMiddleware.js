@@ -11,6 +11,6 @@ export default (req, res, done) => {
         req.user = jwt.verify(session, process.env.JWT_SECRET_KEY);
     } catch (error) {
         console.error(error.toString());
-        return false;
+        return res.status(500).send();
     }
 }

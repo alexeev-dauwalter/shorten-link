@@ -1,7 +1,7 @@
 import { LinkController } from '../controllers/linkController.js';
 import apiMiddleware from '../middlewares/apiMiddleware.js';
 
-export default (fastify, opts, done) => {
+export default (fastify, opts, done) => { // TODO: Подумать над использованием @fastify/middle
     fastify.addHook('preHandler', async (request, reply) => {
         const { url, method } = request.routeConfig,
             allowedRouters = [
@@ -9,7 +9,7 @@ export default (fastify, opts, done) => {
                 { url: '/:hash/qr', method: 'GET' }
             ];
 
-        if (!(allowedRouters.filter(route => url == route.url && method == route.method)).length) {
+        if (!(allowedRouters.filter(route => url === route.url && method === route.method)).length) {
             await apiMiddleware(request, reply);
         }
     })

@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken'; // TODO: Заменить на @fastify/jwt
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -11,6 +11,7 @@ export class AuthController {
                 data = await prisma.user.findFirst({ where: { login } });
 
             if (!data || !bcrypt.compareSync(password, data.password)) {
+                // TODO: Найти HTTP код
                 return res.send({ success: false, error_code: 'user_not_found', error_message: 'Неверный логин или пароль' });
             }
 
