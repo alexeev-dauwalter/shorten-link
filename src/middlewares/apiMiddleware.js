@@ -1,4 +1,3 @@
-import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -16,7 +15,7 @@ export default async (req, res) => {
 
         switch (tokenType.length) {
             case 3: // JWT-Token
-                const decodedData = jwt.verify(token, process.env.JWT_SECRET_KEY);
+                const decodedData = await req.jwtVerify(token, process.env.JWT_SECRET_KEY);
 
                 if (!decodedData) {
                     return res.status(401).send();

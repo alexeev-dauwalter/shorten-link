@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken'; // TODO: Заменить на @fastify/jwt
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -11,21 +10,14 @@ export class AuthController {
                 data = await prisma.user.findFirst({ where: { login } });
 
             if (!data || !bcrypt.compareSync(password, data.password)) {
-                // TODO: Найти HTTP код
-                return res.send({ success: false, error_code: 'user_not_found', error_message: 'Неверный логин или пароль' });
+                return res.code(404).send({ success: false, error_code: 'user_not_found', error_message: 'Неверный логин или пароль' });
             }
 
-            const token = jwt.sign(
-                {
-                    login: data.login,
-                    iss: process.env.SERVER_HOSTNAME,
-                    iat: Date.now()
-                },
-                process.env.JWT_SECRET_KEY,
-                {
-                    expiresIn: process.env.JWT_ALIVE_TIME
-                }
-            );
+            const token = await res.jwtSign({
+                login: data.login,
+                iss: process.env.SERVER_HOSTNAME,
+                iat: Date.now()
+            });
 
             return res.setCookie('session', token, {
                 domain: process.env.SERVER_HOSTNAME,

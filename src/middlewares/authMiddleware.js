@@ -1,6 +1,4 @@
-import jwt from 'jsonwebtoken';
-
-export default (req, res, done) => {
+export default async (req, res, done) => {
     if (req.method === 'OPTIONS') return done();
 
     try {
@@ -8,7 +6,7 @@ export default (req, res, done) => {
 
         if (!session) return false;
 
-        req.user = jwt.verify(session, process.env.JWT_SECRET_KEY);
+        req.user = await req.jwtVerify(session, process.env.JWT_SECRET_KEY);
     } catch (error) {
         console.error(error.toString());
         return res.status(500).send();

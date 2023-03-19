@@ -24,11 +24,11 @@
     "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.2.1",
     "@fastify/helmet": "^10.1.0",
+    "@fastify/jwt": "^6.7.1",
     "@prisma/client": "^4.11.0",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.0.3",
     "fastify": "^4.14.0",
-    "jsonwebtoken": "^9.0.0",
     "prisma": "^4.11.0",
     "qrcode": "^1.5.1"
   }

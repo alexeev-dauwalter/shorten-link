@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
+import jwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import Router from './routers/index.js';
 
@@ -22,6 +23,12 @@ const fastify = Fastify({
 fastify.register(cookie, {
     secret: process.env.COOKIE_SECRET_KEY
 });
+fastify.register(jwt, {
+    secret: process.env.JWT_SECRET_KEY,
+    sign: {
+        expiresIn: process.env.JWT_ALIVE_TIME
+    }
+})
 
 fastify.register(helmet);
 fastify.register(cors, {

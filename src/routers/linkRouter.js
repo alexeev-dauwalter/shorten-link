@@ -1,7 +1,7 @@
 import { LinkController } from '../controllers/linkController.js';
 import apiMiddleware from '../middlewares/apiMiddleware.js';
 
-export default (fastify, opts, done) => { // TODO: Подумать над использованием @fastify/middle
+export default (fastify, opts, done) => {
     fastify.addHook('preHandler', async (request, reply) => {
         const { url, method } = request.routeConfig,
             allowedRouters = [
