@@ -9,9 +9,7 @@ export class AuthController {
             const { login, password } = req.body,
                 data = await prisma.user.findFirst({ where: { login } });
 
-            if (!data || !bcrypt.compareSync(password, data.password)) {
-                return res.code(404).send({ success: false, error_code: 'user_not_found', error_message: 'Неверный логин или пароль' });
-            }
+            if (!data || !bcrypt.compareSync(password, data.password)) return res.code(404).send();
 
             const token = await res.jwtSign({
                 login: data.login,
@@ -21,7 +19,7 @@ export class AuthController {
 
             return res.setCookie('session', token, {
                 domain: process.env.SERVER_HOSTNAME,
-            }).send({ success: true });
+            }).send();
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -32,7 +30,7 @@ export class AuthController {
         try {
             return res.clearCookie('session', {
                 domain: process.env.SERVER_HOSTNAME,
-            }).send({ success: true });
+            }).send();
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();

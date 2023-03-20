@@ -7,7 +7,7 @@ export default (fastify, opts, done) => {
         await apiMiddleware(request, reply);
         await roleMiddleware({
             fastify: { request, reply },
-            need_value: 100
+            accessLevel: 100
         });
     });
 

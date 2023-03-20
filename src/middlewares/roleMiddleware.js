@@ -2,13 +2,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export default async ({ fastify, need_value }) => {
+export default async ({ fastify, accessLevel }) => {
     try {
         const userRoles = await prisma.role.findMany({
             where: { id: { in: fastify.request.user.roles } },
         });
 
-        if (!((userRoles.filter(role => role.value >= need_value)).length)) {
+        if (!((userRoles.filter(role => role.access_level >= accessLevel)).length)) {
             return fastify.reply.code(403).send();
         }
     } catch (error) {

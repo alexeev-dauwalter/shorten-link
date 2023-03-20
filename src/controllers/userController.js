@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
+import randomString from '../utils/randomString.js';
 
 const prisma = new PrismaClient();
 
@@ -31,7 +32,7 @@ export class UserController {
                     username,
                     login,
                     password: bcrypt.hashSync(password, 7),
-                    token: UserController.generateToken(),
+                    token: randomString({}),
                     roles: {
                         connect: roles ?
                             roles.map(role => { return { id: role } }) :
@@ -123,22 +124,13 @@ export class UserController {
         if (data.created_at) data.created_at = new Date(data.created_at).getTime();
         if (data.updated_at) data.updated_at = new Date(data.updated_at).getTime();
 
-        data.roles = data.roleId;
+        if(data.roleId) {
+            data.roles = data.roleId;
 
-        delete data.roleId;
-        delete data.password;
-
-        return data;
-    }
-
-    static generateToken() {
-        const alph = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let token = '';
-
-        while (token.length < 32) {
-            token += alph[Math.floor(Math.random() * alph.length)];
+            delete data.roleId;
+            delete data.password;
         }
 
-        return token;
+        return data;
     }
 }

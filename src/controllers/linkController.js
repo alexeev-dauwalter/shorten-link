@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import qrcode from 'qrcode';
+import randomString from '../utils/randomString.js';
 
 const prisma = new PrismaClient();
 
@@ -23,12 +24,16 @@ export class LinkController {
 
             if (!link || !duration) return res.code(400).send();
 
-            let short_link = LinkController.generateShort(),
-                query;
+            let short_link = randomString({ length: process.env.SHORTLINK_LENGTH, alph: process.env.SHORTLINK_SYMBOLS }),
+                query = null;
 
             while (query = await prisma.link.findFirst({ where: { short_link } })) {
                 if (!query) break;
-                short_link = LinkController.generateShort(short_link);
+                short_link = randomString({ 
+                    length: 1, 
+                    alph: process.env.SHORTLINK_SYMBOLS,
+                    prefix: short_link 
+                });
             }
 
             query = await prisma.link.create({
@@ -150,16 +155,6 @@ export class LinkController {
             console.error(error.toString());
             return res.code(500).send();
         }
-    }
-
-    static generateShort(prefix = null) {
-        let result = prefix || '';
-
-        while (result.length < (prefix ? prefix.length + 1 : process.env.SHORTLINK_LENGTH)) {
-            result += process.env.SHORTLINK_SYMBOLS[Math.floor(Math.random() * process.env.SHORTLINK_SYMBOLS.length)];
-        }
-
-        return result;
     }
 
     static reformatDates(data) {

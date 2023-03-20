@@ -33,11 +33,11 @@ model User {
 }
 
 model Role {
-  id      Int         @id @default(autoincrement())
-  name    String
-  value   Int         @default(0)
-  default Boolean     @default(false)
-  users   UserRoles[]
+  id           Int         @id @default(autoincrement())
+  name         String
+  access_level Int         @default(0)
+  default      Boolean     @default(false)
+  users        UserRoles[]
 
   @@map("roles") // Название таблицы
 }

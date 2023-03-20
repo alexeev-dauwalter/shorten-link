@@ -34,12 +34,12 @@ model User {
 }
 
 model Role {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  name    String
-  value   Int      @default(0)
-  default Boolean  @default(false)
-  users   User[]   @relation(fields: [userId], references: [id])
-  userId  String[] @db.ObjectId
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  access_level Int      @default(0)
+  default      Boolean  @default(false)
+  users        User[]   @relation(fields: [userId], references: [id])
+  userId       String[] @db.ObjectId
 
   @@map("roles") // Название таблицы
 }

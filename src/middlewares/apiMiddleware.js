@@ -6,10 +6,11 @@ export default async (req, res) => {
     if (req.method === 'OPTIONS') return res.send();
 
     try {
-        let token = req.cookies?.session || req.headers?.authorization ? ((req.headers?.authorization).split(' '))[1] : null,
-            user = false;
+        let token = req.cookies?.session || req.headers?.authorization ? ((req.headers?.authorization).split(' '))[1] : null;
 
         if (!token) return res.status(401).send();
+
+        let user = null;
 
         const tokenType = token[1].split('.');
 
