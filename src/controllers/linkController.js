@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import qrcode from 'qrcode';
-import randomString from '../utils/randomString.js';
+import { Link } from '../models/Link.js';
 
 const prisma = new PrismaClient();
 
@@ -8,9 +8,11 @@ export class LinkController {
     static async getAll(req, res) {
         try {
             const links = await prisma.link.findMany({ where: { owner: req.user.id } });
-            return res.send(links.map(x => {
-                delete x.owner;
-                return LinkController.reformatDates(x);
+            return res.send(links.map(link => {
+                return Object.assign(
+                    { qrcode: `https://${process.env.SERVER_HOSTNAME}/${link.short_link}/qr` },
+                    new Link(link).toJSON()
+                );
             }));
         } catch (error) {
             console.error(error.toString());
@@ -24,26 +26,15 @@ export class LinkController {
 
             if (!link || !duration) return res.code(400).send();
 
-            let short_link = randomString({ length: process.env.SHORTLINK_LENGTH, alph: process.env.SHORTLINK_SYMBOLS }),
-                query = null;
-
-            while (query = await prisma.link.findFirst({ where: { short_link } })) {
-                if (!query) break;
-                short_link = randomString({ 
-                    length: 1, 
-                    alph: process.env.SHORTLINK_SYMBOLS,
-                    prefix: short_link 
+            const short_link = await Link.generateShort(),
+                query = await prisma.link.create({
+                    data: {
+                        owner: req.user.id,
+                        short_link,
+                        link,
+                        end_at: new Date(parseInt(duration, 10) * 1000)
+                    }
                 });
-            }
-
-            query = await prisma.link.create({
-                data: {
-                    owner: req.user.id,
-                    short_link,
-                    link,
-                    end_at: new Date(duration * 1000)
-                }
-            });
 
             if (!query) return res.code(500).send();
 
@@ -75,10 +66,8 @@ export class LinkController {
 
             if (!data) return res.code(404).send();
 
-            delete data.owner;
-
             return res.send(Object.assign(
-                LinkController.reformatDates(data),
+                new Link(data).toJSON(),
                 { qrcode: `https://${process.env.SERVER_HOSTNAME}/${hash}/qr` },
             ));
         } catch (error) {
@@ -100,18 +89,18 @@ export class LinkController {
 
             const query = await prisma.link.update({
                 where: { short_link: hash },
-                data: {
+                data: new Link(Object.assign({
                     link: link || data.link,
                     updated_at: new Date(),
                     end_at: duration ? new Date(duration * 1000) : new Date(data.end_at)
-                }
+                }, data)).toJSON()
             });
 
             if (!query) return res.code(500).send();
 
             data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
 
-            return res.send(LinkController.reformatDates(data));
+            return res.send(new Link(data).toJSON());
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -129,9 +118,7 @@ export class LinkController {
 
             if (!query) return res.code(500).send();
 
-            data = LinkController.reformatDates(data);
-
-            return res.send(data);
+            return res.send(new Link(data).toJSON());
         } catch (error) {
             console.error(error.toString());
             return res.code(500).send();
@@ -155,13 +142,5 @@ export class LinkController {
             console.error(error.toString());
             return res.code(500).send();
         }
-    }
-
-    static reformatDates(data) {
-        if (data.created_at) data.created_at = new Date(data.created_at).getTime();
-        if (data.updated_at) data.updated_at = new Date(data.updated_at).getTime();
-        if (data.end_at) data.end_at = new Date(data.end_at).getTime();
-
-        return data;
     }
 }

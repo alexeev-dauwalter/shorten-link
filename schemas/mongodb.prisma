@@ -27,8 +27,8 @@ model User {
   token      String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  roles      Role[]   @relation(fields: [roleId], references: [id])
-  roleId     String[] @db.ObjectId
+  role       Role[]   @relation(fields: [roles], references: [id])
+  roles      String[] @db.ObjectId
 
   @@map("users") // Название таблицы
 }
@@ -37,9 +37,9 @@ model Role {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   access_level Int      @default(0)
-  default      Boolean  @default(false)
-  users        User[]   @relation(fields: [userId], references: [id])
-  userId       String[] @db.ObjectId
+  is_default   Boolean  @default(false)
+  user         User[]   @relation(fields: [users], references: [id])
+  users        String[] @db.ObjectId
 
   @@map("roles") // Название таблицы
 }

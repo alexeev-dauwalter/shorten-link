@@ -34,9 +34,6 @@ export default async (req, res) => {
 
         if (!user) return res.status(401).send();
 
-        user.roles = user.roleId;
-        delete user.roleId;
-
         req.user = user;
     } catch (error) {
         console.error(error.toString());

@@ -13,8 +13,8 @@ export default (fastify, opts, done) => {
 
     fastify.get('/users/', UserController.get);
     fastify.post('/users/', UserController.create);
-    fastify.get('/users/:userId/', UserController.getInfo);
-    fastify.put('/users/:userId/', UserController.update);
-    fastify.delete('/users/:userId/', UserController.delete);
+    fastify.get('/users/:userLogin/', UserController.getInfo);
+    fastify.put('/users/:userLogin/', UserController.update);
+    fastify.delete('/users/:userLogin/', UserController.delete);
     done();
 }

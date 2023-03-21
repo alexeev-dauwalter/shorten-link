@@ -30,7 +30,9 @@ fastify.register(jwt, {
     }
 })
 
-fastify.register(helmet);
+fastify.register(helmet, {
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+});
 fastify.register(cors, {
     origin: true // FIXME
 });
