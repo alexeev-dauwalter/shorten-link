@@ -52,5 +52,4 @@ await fastify.listen({
         fastify.log.error(error);
         process.exit(1);
     }
-    console.log(`[ * ] Server is now listening on ${address}`);
 });
