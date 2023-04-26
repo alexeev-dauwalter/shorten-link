@@ -39,14 +39,16 @@ export class Link {
         return short_link;
     }
 
-    toJSON() {
-        return reformatDate({
+    toJSON(timestamp = true) {
+        const data = {
             id: this.id,
             short_link: this.shortLink,
             link: this.link,
             created_at: this.createdAt,
             updated_at: this.updatedAt,
             end_at: this.endAt
-        });
+        };
+
+        return timestamp ? reformatDate(data) : data;
     }
 }

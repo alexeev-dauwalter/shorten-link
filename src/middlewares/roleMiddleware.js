@@ -9,7 +9,8 @@ export default async ({ fastify, accessLevel }) => {
         });
 
         if (!((userRoles.filter(role => role.access_level >= accessLevel)).length)) {
-            return fastify.reply.code(403).send();
+            fastify.reply.code(403).send();
+            return false;
         }
     } catch (error) {
         console.error(error.toString());

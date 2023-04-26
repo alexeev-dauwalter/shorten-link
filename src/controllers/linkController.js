@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import qrcode from 'qrcode';
 import { Link } from '../models/Link.js';
+import roleMiddleware from '../middlewares/roleMiddleware.js';
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,7 @@ export class LinkController {
 
             if (!link || !duration) return res.code(400).send();
 
-            const short_link = await Link.generateShort(),
+            const short_link = await Link.generateShortLink(),
                 query = await prisma.link.create({
                     data: {
                         owner: req.user.id,
@@ -79,26 +80,44 @@ export class LinkController {
     static async update(req, res) {
         try {
             const { hash } = req.params,
-                { link, duration } = req.body;
+                { short_link, link, duration } = req.body;
 
-            let data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
+            let data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } }),
+                candidate;
+
+            if (short_link) {
+                if(!await roleMiddleware({
+                    fastify: { request: req, reply: res },
+                    accessLevel: 100
+                })) return;
+                candidate = await prisma.link.findFirst({ where: { short_link } });
+            }
 
             if (!data) return res.code(404).send();
 
-            if (!link && !duration) return res.code(400).send();
+            if (candidate && data.id != candidate.id) return res.code(409).send();
 
-            const query = await prisma.link.update({
-                where: { short_link: hash },
-                data: new Link(Object.assign({
-                    link: link || data.link,
-                    updated_at: new Date(),
-                    end_at: duration ? new Date(duration * 1000) : new Date(data.end_at)
-                }, data)).toJSON()
-            });
+            if (!short_link && !link && !duration) return res.code(400).send();
+
+            const updatedLink = new Link(Object.assign(data, {
+                short_link: short_link || data.short_link,
+                link: link || data.link,
+                updated_at: new Date(),
+                end_at: duration ? new Date(duration * 1000) : new Date(data.end_at)
+            })).toJSON(false),
+                query = await prisma.link.update({
+                    where: { short_link: hash },
+                    data: {
+                        short_link: updatedLink.short_link,
+                        link: updatedLink.link,
+                        updated_at: updatedLink.updated_at,
+                        end_at: updatedLink.end_at
+                    }
+                });
 
             if (!query) return res.code(500).send();
 
-            data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: hash } });
+            data = await prisma.link.findFirst({ where: { owner: req.user.id, short_link: short_link || hash } });
 
             return res.send(new Link(data).toJSON());
         } catch (error) {
